@@ -1,31 +1,34 @@
 import { cn } from "../../lib/utils"
 import Icons from "../icons"
+import NavTooltip from "../nav-tooltip"
 
 type ServerItem = {
   id: string
 }
 
 const ServerListItem = ({ id }: ServerItem) => {
-  const selectedId = "0"
+  const selectedId = "10"
   const isSelected = id === selectedId
   return (
-    <div className="flex flex-col ">
-      <div className="group">
-        <div
-          className={cn(
-            "mx-3  flex h-12 w-12 items-center justify-center overflow-hidden rounded-[24px] bg-background transition-all group-hover:rounded-[16px] group-hover:bg-primary",
-            { "bg-primary rounded-[16px]": isSelected }
-          )}
-        >
-          <Icons.discord
+    <>
+      <NavTooltip label="something" side="left" align="center">
+        <li className="group">
+          <div
             className={cn(
-              "m-auto text-gray-300 transition-colors group-hover:text-white",
-              { "text-white": isSelected }
+              "mx-3 h-12 w-12 overflow-hidden rounded-[24px] bg-background transition-all group-hover:rounded-[16px] group-hover:bg-primary",
+              { "bg-primary rounded-[16px]": isSelected }
             )}
-          />
-        </div>
-      </div>
-    </div>
+          >
+            <Icons.discord
+              className={cn(
+                "m-auto h-full text-gray-300 transition-colors group-hover:text-white",
+                { "text-white": isSelected }
+              )}
+            />
+          </div>
+        </li>
+      </NavTooltip>
+    </>
   )
 }
 

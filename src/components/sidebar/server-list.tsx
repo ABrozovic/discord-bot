@@ -10,7 +10,9 @@ const ServerList = ({ className }: { className?: string }) => {
         className
       )}
     >
-      <ServerListItem id="0" />
+      <ul role="server-tree" className="flex flex-col">
+        <ServerListItem id="0" />
+      </ul>
     </nav>
   )
 }
