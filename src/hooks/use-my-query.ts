@@ -1,3 +1,5 @@
+"use client"
+
 import { useQuery } from "@tanstack/react-query"
 
 export const useMyQuery = <T>(queryKey: string[]) => {
@@ -7,5 +9,5 @@ export const useMyQuery = <T>(queryKey: string[]) => {
 }
 
 export const fakeFunc = async <T>(): Promise<T> => {
-  return new Promise(() => {})
+  return {} as Promise<T>
 }
