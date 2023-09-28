@@ -1,3 +1,5 @@
+import Providers from "@/components/providers"
+
 import "./globals.css"
 
 import type { Metadata } from "next"
@@ -16,8 +18,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" className="dark">
+      <body className={inter.className}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }
