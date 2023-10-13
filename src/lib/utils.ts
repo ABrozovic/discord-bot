@@ -24,6 +24,7 @@ export function snakeToCamel<T extends object>(obj: T): T {
       const newKey = key.replace(/_./g, (match) =>
         match.charAt(1).toUpperCase()
       )
+      //@ts-ignore
       newObj[newKey] = snakeToCamel(obj[key])
     })
 
@@ -31,4 +32,50 @@ export function snakeToCamel<T extends object>(obj: T): T {
   }
 
   return obj
+}
+
+export function formatTimestamp(timestamp: string): string {
+  const currentDate = new Date()
+  const parsedTimestamp = new Date(timestamp)
+
+  const isSameDay =
+    parsedTimestamp.getDate() === currentDate.getDate() &&
+    parsedTimestamp.getMonth() === currentDate.getMonth() &&
+    parsedTimestamp.getFullYear() === currentDate.getFullYear()
+
+  const isYesterday = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate() - 1
+  )
+
+  if (isSameDay) {
+    return (
+      "Today at " +
+      parsedTimestamp.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "numeric",
+      })
+    )
+  } else if (
+    parsedTimestamp.getDate() === isYesterday.getDate() &&
+    parsedTimestamp.getMonth() === isYesterday.getMonth() &&
+    parsedTimestamp.getFullYear() === isYesterday.getFullYear()
+  ) {
+    return (
+      "Yesterday at " +
+      parsedTimestamp.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "numeric",
+      })
+    )
+  } else {
+    return parsedTimestamp.toLocaleDateString([], {
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    })
+  }
 }

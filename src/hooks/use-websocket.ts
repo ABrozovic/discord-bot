@@ -1,4 +1,5 @@
-import React, { useRef } from "react"
+import React from "react"
+import { useBoundStore } from "@/store/slices"
 import { useQueryClient } from "@tanstack/react-query"
 import ReconnectingWebSocket from "reconnecting-websocket"
 
@@ -14,34 +15,74 @@ export type WsJsonMessage = {
 
 export const useWebSocketSubscription = () => {
   const queryClient = useQueryClient()
+  const setWebsocket = useBoundStore((state) => state.setWebsocket)
+  const activeGuild = useBoundStore((state) => state.activeGuild)
 
-  const websocketRef = useRef<ReconnectingWebSocket | null>(null)
+  const websocket = useBoundStore((state) => state.websocket)
+  React.useEffect(() => {
+    websocket?.send(
+      createWsMessage({
+        action: "subscribe_to_guild",
+        message: activeGuild,
+      })
+    )
+  }, [activeGuild, websocket])
 
   React.useEffect(() => {
-    const websocket = new ReconnectingWebSocket(
-      "ws://127.0.0.1/ws?type=CLIENT",
-      // "wss://discord-go.onrender.com/ws?type=CLIENT",
-      undefined,
-      { debug: true, minReconnectionDelay: 3000 }
-    )
-    websocketRef.current = websocket
-    websocket.onopen = () => {
-      websocket.send(createWsMessage({ action: "join" }))
+    let websocket: ReconnectingWebSocket | null
+    let heartbeatTimeout: NodeJS.Timeout | null
+
+    const startHeartbeat = () => {
+      heartbeatTimeout = setTimeout(() => {
+        if (websocket && websocket.readyState === 1) {
+          websocket.send(createWsMessage({ action: "heartbeat" }))
+          startHeartbeat()
+        }
+      }, 55 * 1000)
     }
 
-    websocket.onmessage = (event) => {
-      const data: WsJsonMessage = snakeToCamel<WsJsonMessage>(
-        JSON.parse(event.data)
+    const stopHeartbeat = () => {
+      if (heartbeatTimeout) {
+        clearTimeout(heartbeatTimeout)
+        heartbeatTimeout = null
+      }
+    }
+
+    const initializeWebSocket = () => {
+      websocket = new ReconnectingWebSocket(
+        // "ws://127.0.0.1/ws?type=CLIENT",
+        "wss://discord-go.onrender.com/ws?type=CLIENT",
+        undefined,
+        { debug: true, minReconnectionDelay: 3000 }
       )
-      data.message = data.message && JSON.parse(data.message)
-      const queryKey = [data.action, data.messageId].filter(Boolean)
+      setWebsocket(websocket)
 
-      queryClient.setQueryData(queryKey, data.message)
+      websocket.onopen = () => {
+        startHeartbeat()
+        websocket?.send(createWsMessage({ action: "join" }))
+      }
+
+      websocket.onmessage = (event) => {
+        console.log(event)
+        const data: WsJsonMessage = snakeToCamel<WsJsonMessage>(
+          JSON.parse(event.data)
+        )
+        data.message = data.message && JSON.parse(data.message)
+        const queryKey = [data.action, data.messageId].filter(Boolean)
+
+        queryClient.setQueryData(queryKey, data.message)
+      }
+
+      websocket.onclose = () => {
+        stopHeartbeat()
+      }
     }
+
+    initializeWebSocket()
 
     return () => {
-      websocket.close()
+      websocket?.close()
+      stopHeartbeat()
     }
-  }, [queryClient])
-  return websocketRef.current
+  }, [queryClient, setWebsocket])
 }

@@ -1,9 +1,16 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import {
+  useQuery,
+  type QueryOptions,
+  type UseQueryOptions,
+} from "@tanstack/react-query"
 
-export const useMyQuery = <T>(queryKey: string[]) => {
-  const query = useQuery({ queryKey, queryFn: () => fakeFunc<T>() })
+export const useMyQuery = <T>(
+  queryKey: string[],
+  options?: UseQueryOptions<T>
+) => {
+  const query = useQuery({ queryKey, queryFn: () => fakeFunc<T>(), ...options })
 
   return query
 }
