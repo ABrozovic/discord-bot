@@ -126,6 +126,7 @@ export const ChatMessages = () => {
                 <ChatMessage
                   key={message.id}
                   avatar={`https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.webp?size=80`}
+                  fallbackAvatar={`https://cdn.discordapp.com/avatars/${message.author.id}/a_${message.author.avatar}.webp?size=80`}
                   author={message.author?.username}
                   content={message.content}
                   time={message.timestamp}
@@ -144,17 +145,21 @@ export const ChatMessages = () => {
 
 type ChatMessageProps = {
   avatar: string
+  fallbackAvatar: string
   author: string
   time: string
   content: string
 }
 export const ChatMessage = ({
   avatar,
+  fallbackAvatar,
   author,
   time,
   content,
 }: ChatMessageProps) => {
   const parsedMessage = content
+  const [error, setError] = useState<boolean>()
+
   // TODO: Message parsing, emojis, etc..
   return (
     <li className="relative">
@@ -162,7 +167,8 @@ export const ChatMessage = ({
         <div className="static">
           <Image
             className="absolute left-4 mt-0.5 cursor-pointer rounded-full"
-            src={avatar}
+            onError={(e) => setError(true)}
+            src={error ? fallbackAvatar : avatar}
             alt="user avatar"
             height={40}
             width={40}

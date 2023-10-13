@@ -18,6 +18,16 @@ export const useWebSocketSubscription = () => {
   const setWebsocket = useBoundStore((state) => state.setWebsocket)
   const activeGuild = useBoundStore((state) => state.activeGuild)
 
+  const websocket = useBoundStore((state) => state.websocket)
+  React.useEffect(() => {
+    websocket?.send(
+      createWsMessage({
+        action: "subscribe_to_guild",
+        message: activeGuild,
+      })
+    )
+  }, [activeGuild, websocket])
+
   React.useEffect(() => {
     let websocket: ReconnectingWebSocket | null
     let heartbeatTimeout: NodeJS.Timeout | null
@@ -50,12 +60,6 @@ export const useWebSocketSubscription = () => {
       websocket.onopen = () => {
         startHeartbeat()
         websocket?.send(createWsMessage({ action: "join" }))
-        websocket?.send(
-          createWsMessage({
-            action: "subscribe_to_guild",
-            message: activeGuild,
-          })
-        )
       }
 
       websocket.onmessage = (event) => {
