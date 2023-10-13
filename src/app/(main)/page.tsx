@@ -272,6 +272,8 @@ export const ChatTextBox = () => {
   } = useTextBox()
   const [activeIndex, setActiveIndex] = useState(0)
 
+  const activeChannel = useBoundStore((state) => state.activeChannel)
+
   const handleKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case "ArrowUp":
@@ -298,8 +300,8 @@ export const ChatTextBox = () => {
         event.preventDefault()
         websocket?.send(
           createWsMessage({
-            action: "dm_message",
-            messageId: "376203962204028939",
+            action: "guild_message",
+            messageId: activeChannel,
             message: text,
           })
         )
