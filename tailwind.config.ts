@@ -15,14 +15,14 @@ module.exports = {
         "2xl": "1400px",
       },
     },
-    fontSize: {
-      h1: "var(--h1)",
-      h2: "var(--h2)",
-      h3: "var(--h3)",
-      h4: "var(--h4)",
-      h5: "var(--h5)",
-    },
     extend: {
+      fontSize: {
+        h1: "var(--h1)",
+        h2: "var(--h2)",
+        h3: "var(--h3)",
+        h4: "var(--h4)",
+        h5: "var(--h5)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -38,6 +38,7 @@ module.exports = {
           foreground: "hsl(var(--secondary-foreground))",
         },
         tertiary: {
+          DEFAULT: "hsl(var(--tertiary-background))",
           background: "hsl(var(--tertiary-background))",
         },
         destructive: {

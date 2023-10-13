@@ -1,9 +1,9 @@
 import Image from "next/image"
 
-import { cn } from "../../lib/utils"
-import Icons from "../icons"
-import NavTooltip from "../nav-tooltip"
-import { Typography } from "../typography"
+import { cn } from "@/lib/utils"
+import Icons from "@/components/icons"
+import NavTooltip from "@/components/nav-tooltip"
+import { Typography } from "@/components/typography"
 
 const serverItems = { DISCORD: "DISCORD", DM: "DM", SERVER: "SERVER" } as const
 
@@ -17,7 +17,7 @@ type ServerItemProps = {
 }
 
 const ServerListItem = ({ id, label, type, src }: ServerItemProps) => {
-  const selectedId = "10"
+  const selectedId = "DMs"
   const isSelected = id === selectedId
   const itemOptions: Record<KeyOfServerItems, JSX.Element> = {
     DISCORD: (
@@ -29,7 +29,7 @@ const ServerListItem = ({ id, label, type, src }: ServerItemProps) => {
       />
     ),
     SERVER: src ? (
-      <Image src={src} alt="" />
+      <Image src={src} alt={`${label}'s server icon`} width={96} height={96} />
     ) : (
       <Typography variant="h5" as="h3">
         {label.charAt(0)}

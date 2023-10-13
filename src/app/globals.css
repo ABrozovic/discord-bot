@@ -57,7 +57,7 @@
     --primary: 234.9 86% 65%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 220 6.5% 18%;
     --secondary-foreground: 210 40% 98%;
 
     --tertiary-background: 225 6.3% 12.5%;
@@ -83,5 +83,13 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  html,
+  body,
+  #__next {
+    @apply flex flex-col flex-1;
+    @apply h-auto min-h-full w-screen max-w-full;
+    @apply m-0 p-0;
+    @apply overflow-y-auto overflow-x-hidden;
   }
 }

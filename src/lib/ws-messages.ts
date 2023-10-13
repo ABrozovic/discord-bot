@@ -1,27 +1,27 @@
-import { WsJsonMessage } from "@/hooks/use-websocket"
-
 const messages = {
+  heartbeat: "heartbeat",
   join: "join",
-  send: "send",
+  dmMessage: "dm_message",
+  guildMessage: "guild_message",
+  subscribeToGuild: "subscribe_to_guild",
 } as const
 
 type MessageKey = keyof typeof messages
 
-export const wsMessage: {
-  [K in MessageKey]: WsJsonMessage
-} = {
-  join: { action: messages.join },
-  send: { action: messages.send },
-}
-
-type CreateWsMessage<K extends MessageKey> = {
-  action: (typeof messages)[K]
-}
-
-export const createWsMessage = <K extends MessageKey>({
+type CreateWsMessageFn = <K extends MessageKey>({
   action,
-  ...rest
-}: CreateWsMessage<K> & Omit<WsJsonMessage, "action">) => {
-  const wsMsg: WsJsonMessage = { ...rest, action }
-  return JSON.stringify(wsMsg)
+  message,
+  messageId,
+}: {
+  action: (typeof messages)[K]
+  message?: string
+  messageId?: string
+}) => string
+
+export const createWsMessage: CreateWsMessageFn = ({
+  action,
+  message,
+  messageId,
+}) => {
+  return JSON.stringify({ action, message, message_id: messageId })
 }
