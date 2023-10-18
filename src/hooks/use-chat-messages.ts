@@ -17,8 +17,11 @@ const useChatMessages = ({ channelId }: { channelId: string }) => {
     channelId: string
     page: number
   }) => {
+    //TODO: use proper envs
     const res = await fetch(
-      `http://localhost/api/channel?channelId=${channelId}&page=${page + 1}`
+      `https://discord-go.onrender.com/api/channel?channelId=${channelId}&page=${
+        page + 1
+      }`
     )
 
     return res.json() as Promise<PaginatedMessages>

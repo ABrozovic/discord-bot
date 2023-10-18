@@ -15,7 +15,7 @@ export const useWebSocketSubscription = () => {
   const queryClient = useQueryClient()
   const setWebsocket = useBoundStore((state) => state.setWebsocket)
   const addToMessageQueue = useBoundStore((state) => state.setMessageQueue)
-
+  //TODO: user proper envs
   React.useEffect(() => {
     const wsman = new WebSocketManager(
       // "ws://127.0.0.1/ws?type=CLIENT"
