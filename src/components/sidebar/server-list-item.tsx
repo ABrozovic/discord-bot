@@ -1,4 +1,8 @@
+"use client"
+
 import Image from "next/image"
+import Link from "next/link"
+import { useParams } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import Icons from "@/components/icons"
@@ -17,8 +21,10 @@ type ServerItemProps = {
 }
 
 const ServerListItem = ({ id, label, type, src }: ServerItemProps) => {
-  const selectedId = "DMs"
-  const isSelected = id === selectedId
+  const { serverId } = useParams()
+
+  const isSelected = id === serverId
+
   const itemOptions: Record<KeyOfServerItems, JSX.Element> = {
     DISCORD: (
       <Icons.discord
@@ -40,29 +46,32 @@ const ServerListItem = ({ id, label, type, src }: ServerItemProps) => {
   const ServerListItem = itemOptions[type]
   return (
     <>
-      <NavTooltip label={label} side="right" align="center" sideOffset={7}>
-        <li className="group relative">
-          <div className="flex h-full items-center justify-start">
-            <span
-              className={cn(
-                "absolute -ml-1 h-2 w-2 rounded-r bg-primary transition-all dark:bg-white",
-                {
-                  "h-10": isSelected,
-                  "group-hover:h-5": !isSelected,
-                }
-              )}
-            />
-            <div
-              className={cn(
-                "mx-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-[24px] bg-background transition-all group-hover:rounded-[16px] group-hover:bg-primary",
-                { "bg-primary rounded-[16px]": isSelected }
-              )}
-            >
-              {ServerListItem}
+      <Link href={`/server/${id}`}>
+        <NavTooltip label={label} side="right" align="center" sideOffset={7}>
+          <li className="group relative">
+            <div className="flex h-full items-center justify-start">
+              <span
+                className={cn(
+                  "absolute -ml-1 h-2 w-2 rounded-r bg-primary transition-all dark:bg-white",
+                  {
+                    "h-10": isSelected,
+                    "group-hover:h-5": !isSelected,
+                  }
+                )}
+              />
+
+              <div
+                className={cn(
+                  "mx-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-[24px] bg-background transition-all group-hover:rounded-[16px] group-hover:bg-primary",
+                  { "bg-primary rounded-[16px]": isSelected }
+                )}
+              >
+                {ServerListItem}
+              </div>
             </div>
-          </div>
-        </li>
-      </NavTooltip>
+          </li>
+        </NavTooltip>
+      </Link>
     </>
   )
 }

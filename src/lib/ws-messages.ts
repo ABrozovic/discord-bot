@@ -25,3 +25,5 @@ export const createWsMessage: CreateWsMessageFn = ({
 }) => {
   return JSON.stringify({ action, message, message_id: messageId })
 }
+
+const clientMessages = ["get_guilds", "get_channels"] as const

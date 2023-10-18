@@ -2,12 +2,12 @@
 
 import type { APIGuild } from "discord-api-types/v10"
 
-import { useMyQuery } from "@/hooks/use-my-query"
+import { useQueryWrapper } from "@/hooks/use-query-wrapper"
 
 import ServerListItem from "./server-list-item"
 
 const ServerList = () => {
-  const serverList = useMyQuery<Record<string, APIGuild>>(["list_guilds"])
+  const serverList = useQueryWrapper<Record<string, APIGuild>>("getGuilds")
   return (
     <ul aria-label="servers" className="flex flex-col gap-2">
       {serverList.data &&

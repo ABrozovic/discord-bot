@@ -2,9 +2,14 @@ import ReconnectingWebSocket from "reconnecting-websocket"
 import { create, type StateCreator } from "zustand"
 import { devtools } from "zustand/middleware"
 
+import type { WebSocketManager } from "@/lib/ws-manager"
+
 type WsSlice = {
-  websocket: ReconnectingWebSocket | undefined
-  setWebsocket: (ws: ReconnectingWebSocket) => void
+  websocket: WebSocketManager | undefined
+  setWebsocket: (ws: WebSocketManager) => void
+  messageQueue: any[]
+  setMessageQueue: (ev: any) => void
+  removeByAction: (action: string) => void
 }
 type DiscordSlice = {
   activeGuild: string
@@ -33,6 +38,15 @@ const createWsSlice: StateCreator<
 > = (set) => ({
   websocket: undefined,
   setWebsocket: (ws) => set((state) => ({ ...state, websocket: ws })),
+  messageQueue: [],
+  setMessageQueue: (msg) =>
+    set((state) => ({ ...state, messageQueue: [...state.messageQueue, msg] })),
+  removeByAction: (action) =>
+    set((state) => {
+      const meh = state.messageQueue.filter((test) => test.action !== action)
+
+      return { ...state, messageQueue: meh }
+    }),
 })
 
 export const useBoundStore = create<WsSlice & DiscordSlice>()(

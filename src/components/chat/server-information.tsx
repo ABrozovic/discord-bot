@@ -1,8 +1,9 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { useParams } from "next/navigation"
 import { useBoundStore } from "@/store/slices"
+import { useQueryClient } from "@tanstack/react-query"
 import {
   ChannelType,
   type APIChannel,
@@ -13,7 +14,7 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { createWsMessage } from "@/lib/ws-messages"
-import { useMyQuery } from "@/hooks/use-my-query"
+import { useQueryWrapper } from "@/hooks/use-query-wrapper"
 
 import Icons from "../icons"
 import { Typography } from "../typography"
@@ -21,9 +22,11 @@ import { ScrollArea } from "../ui/scroll-area"
 
 const ServerInfo = () => {
   const { serverId } = useParams()
-  const guilds = useMyQuery<
-    Record<string, APIGuild & { channels: APIChannel[] }>
-  >(["list_guilds"])
+  const guilds =
+    useQueryWrapper<Record<string, APIGuild & { channels: APIChannel[] }>>(
+      "getGuilds"
+    )
+
   const channelCategories = useMemo(() => {
     if (!guilds || !guilds.data || !guilds.data[serverId as string]) return []
 
@@ -80,7 +83,7 @@ const ServerInfo = () => {
     <div className="relative flex h-full w-60 flex-col bg-secondary">
       <ServerHeader label={guild?.name ?? ""} />
       <div className="relative flex flex-1">
-        <div className="absolute flex h-full w-full flex-1 flex-col justify-end">
+        <div className="absolute flex h-full w-full flex-1 flex-col justify-start">
           <ScrollArea>
             <div className="w-60 truncate pr-2">
               {channelCategories?.map((category) => {
@@ -187,12 +190,9 @@ const ServerChannelHeader = ({
 const ServerChannel = ({ id, label }: { id: string; label: string }) => {
   const websocket = useBoundStore((state) => state.websocket)
   const activeChannel = useBoundStore((state) => state.activeChannel)
-  const activeGuild = useBoundStore((state) => state.activeGuild)
+  const { serverId } = useParams()
   const setActiveChannel = useBoundStore((state) => state.setActiveChannel)
   const handleChannelClick = (channelId: string) => {
-    websocket?.send(
-      createWsMessage({ action: "subscribe_to_guild", message: activeGuild })
-    )
     setActiveChannel(channelId)
   }
 

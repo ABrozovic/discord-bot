@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useBoundStore } from "@/store/slices"
 import {
   type APIEmoji,
@@ -13,7 +13,9 @@ import Balancer from "react-wrap-balancer"
 
 import { formatTimestamp } from "@/lib/utils"
 import { createWsMessage } from "@/lib/ws-messages"
-import { useMyQuery } from "@/hooks/use-my-query"
+import useChatMessages from "@/hooks/use-chat-messages"
+import useScrollToBottomEffect from "@/hooks/use-scroll"
+import { useStreamingMessages } from "@/hooks/use-streaming-messages"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import ServerContainer from "@/components/chat/server-container"
@@ -21,9 +23,13 @@ import ServerInfo from "@/components/chat/server-information"
 import Icons from "@/components/icons"
 import { Typography } from "@/components/typography"
 
+import { useQueryWrapper } from "../../hooks/use-query-wrapper"
+
 const MainPage = () => {
-  const params = useParams()
-  // const server = useMyQuery<
+  const router = useRouter()
+  useEffect(() => {
+    router.push("server/602887413819506700")
+  }, [router])
   return (
     <ServerContainer>
       <ServerInfo />
@@ -51,6 +57,7 @@ export const Chat = () => {
 }
 
 export const ChatHeader = () => {
+  const channelId = useBoundStore((state) => state.activeChannel)
   //TODO: fix colors
   return (
     <div className="z-40 flex h-12 w-full flex-none flex-col justify-center border-b-[1px] border-tertiary ">
@@ -58,7 +65,7 @@ export const ChatHeader = () => {
         <div className="flex flex-1 items-center p-2">
           <Icons.hash className="mx-2 h-6" />
           <Typography variant="p" as="h1" className="mr-2">
-            channel name
+            channel name - {channelId}
           </Typography>
           <Separator orientation="vertical" />
           {/* TODO: Add the rest of the icons */}
@@ -86,8 +93,6 @@ export const ChatRoom = ({ children }: { children: React.ReactNode }) => {
 }
 
 export const ChatMessages = () => {
-  const scrollAreaRef = useRef<HTMLDivElement | null>(null)
-
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
@@ -97,21 +102,21 @@ export const ChatMessages = () => {
     }
   }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [])
-
+  // useEffect(() => {
+  //   scrollToBottom()
+  // }, [])
+  const { serverId } = useParams()
+  const activeGuild = serverId as string
   const activeChannel = useBoundStore((state) => state.activeChannel)
-  const [chatMessages, setChatMessages] = useState<APIMessage[]>([])
-  const newChatMessage = useMyQuery<APIMessage>([
-    "channel_message",
-    activeChannel,
-  ])
+  const chatMessages = useChatMessages({ channelId: activeChannel })
 
-  useEffect(() => {
-    if (!newChatMessage.data || !newChatMessage.data.content) return
-    setChatMessages((oldMessages) => [...oldMessages, newChatMessage.data])
-  }, [newChatMessage.data])
+  const chat = chatMessages.data?.pages.flatMap((page) => page.data ?? []) ?? []
+
+  const newMessages = useStreamingMessages<
+    Array<APIMessage & { member: { nick: string } }>
+  >(serverId as string)
+
+  const { scrollAreaRef } = useScrollToBottomEffect(newMessages.data)
 
   return (
     <div className="relative flex flex-1  ">
@@ -122,16 +127,37 @@ export const ChatMessages = () => {
         >
           <div className="flex h-full w-full flex-1 flex-col justify-end">
             <ol role="list" className="overflow-hidden">
-              {chatMessages.map((message) => (
+              <button onClick={() => chatMessages.fetchNextPage()}>TODO</button>
+              {chat.map((message) => (
                 <ChatMessage
                   key={message.id}
                   avatar={`https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.webp?size=80`}
                   fallbackAvatar={`https://cdn.discordapp.com/avatars/${message.author.id}/a_${message.author.avatar}.webp?size=80`}
-                  author={message.author?.username}
+                  author={
+                    message.member.nick.length > 0
+                      ? message.member?.nick
+                      : message.author?.username
+                  }
                   content={message.content}
                   time={message.timestamp}
                 />
               ))}
+              {newMessages.data
+                ?.filter((msg) => msg.channel_id === activeChannel)
+                .map((message) => (
+                  <ChatMessage
+                    key={message.id}
+                    avatar={`https://cdn.discordapp.com/avatars/${message.author.id}/${message.author.avatar}.webp?size=80`}
+                    fallbackAvatar={`https://cdn.discordapp.com/avatars/${message.author.id}/a_${message.author.avatar}.webp?size=80`}
+                    author={
+                      message.member.nick.length > 0
+                        ? message.member?.nick
+                        : message.author?.username
+                    }
+                    content={message.content}
+                    time={message.timestamp}
+                  />
+                ))}
             </ol>
           </div>
           {/* spacer */}
@@ -445,7 +471,7 @@ const EmoteSuggestion = ({
 const useTextBox = () => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [text, setText] = useState("")
-  const { data } = useMyQuery<Record<string, APIGuild>>(["list_guilds"])
+  const { data } = useQueryWrapper<Record<string, APIGuild>>("getGuilds")
   const [emotesFound, setEmotesFound] = useState<EmojiResult[]>([])
   const [emoteToComplete, setEmoteToComplete] = useState("")
 
