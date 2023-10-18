@@ -18,8 +18,8 @@ export const useWebSocketSubscription = () => {
 
   React.useEffect(() => {
     const wsman = new WebSocketManager(
-      "ws://127.0.0.1/ws?type=CLIENT"
-      // "wss://discord-go.onrender.com/ws?type=CLIENT",
+      // "ws://127.0.0.1/ws?type=CLIENT"
+      "wss://discord-go.onrender.com/ws?type=CLIENT"
     )
     setWebsocket(wsman)
 
