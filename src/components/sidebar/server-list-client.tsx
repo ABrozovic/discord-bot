@@ -8,6 +8,7 @@ import ServerListItem from "./server-list-item"
 
 const ServerList = () => {
   const serverList = useQueryWrapper<Record<string, APIGuild>>("getGuilds")
+
   return (
     <ul aria-label="servers" className="flex flex-col gap-2">
       {serverList.data &&

@@ -6,27 +6,27 @@ export interface InfiniteData<TData> {
   pageParams: unknown[]
 }
 type PaginatedMessages = {
-  data: APIMessage & { member: APIMessage["author"] & { nick: string } }
+  data: Array<APIMessage & { member: APIMessage["author"] & { nick: string } }>
   nextCursor: number
 }
+const fetchMessages = async ({
+  channelId,
+  page = 0,
+}: {
+  channelId: string
+  page: number
+}) => {
+  //TODO: use proper envs
+  const res = await fetch(
+    `https://discord-go.onrender.com/api/channel?channelId=${channelId}&page=${
+      page + 1
+    }`
+  )
+
+  return res.json() as Promise<PaginatedMessages>
+}
+
 const useChatMessages = ({ channelId }: { channelId: string }) => {
-  const fetchMessages = async ({
-    channelId,
-    page = 0,
-  }: {
-    channelId: string
-    page: number
-  }) => {
-    //TODO: use proper envs
-    const res = await fetch(
-      `https://discord-go.onrender.com/api/channel?channelId=${channelId}&page=${
-        page + 1
-      }`
-    )
-
-    return res.json() as Promise<PaginatedMessages>
-  }
-
   const infinite = useInfiniteQuery({
     queryKey: ["channel", channelId],
     queryFn: ({ pageParam }: { pageParam: number }) =>
@@ -34,6 +34,14 @@ const useChatMessages = ({ channelId }: { channelId: string }) => {
     initialPageParam: 0,
     getNextPageParam: (lastPage) =>
       lastPage.nextCursor !== 0 ? lastPage.nextCursor : null,
+    select: (data) => {
+      return data?.pages.flatMap((page) => {
+        const data = page.data ?? []
+        return data.sort((a, b) => {
+          return +new Date(a.timestamp) - +new Date(b.timestamp)
+        })
+      })
+    },
   })
 
   return infinite

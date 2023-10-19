@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useBoundStore } from "@/store/slices"
 import {
+  QueryClient,
   useQueryClient,
   useQuery as useReactQuery,
   type UseQueryOptions,
@@ -77,6 +78,8 @@ export const useStreamingMessages = <T>(
   const queryClient = useQueryClient()
   const subscriptionRef = useRef(false)
 
+  const handleRef = useRef<Function>()
+
   const query = useReactQuery<T, Error, T, readonly string[]>({
     queryKey: ["messages", guildId],
     queryFn: () =>
@@ -88,11 +91,25 @@ export const useStreamingMessages = <T>(
     if (!query.data) return
     if (subscriptionRef.current == true) return
     subscriptionRef.current = true
-    socket?.subscribe(["messages"], (message: T) => {
-      const oldData: T[] = queryClient.getQueryData(["messages", guildId]) ?? []
-      console.log(message)
-      queryClient.setQueryData(["messages", guildId], [...oldData, message])
-    })
+    const handleNewMessages = UpdateMessages<T>(queryClient, guildId)
+    handleRef.current = handleNewMessages
+    socket?.subscribe(["messages"], handleNewMessages)
   }, [guildId, query, queryClient, socket])
+
+  useEffect(() => {
+    return () => {
+      console.log("dismounted")
+      socket?.unsubscribe(["messages"], handleRef.current!)
+    }
+  }, [socket])
   return query
+}
+function UpdateMessages<T>(
+  queryClient: QueryClient,
+  guildId: string
+): Function {
+  return (message: T) => {
+    const oldData: T[] = queryClient.getQueryData(["messages", guildId]) ?? []
+    queryClient.setQueryData(["messages", guildId], [...oldData, message])
+  }
 }

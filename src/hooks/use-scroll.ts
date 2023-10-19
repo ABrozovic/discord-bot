@@ -4,7 +4,6 @@ import { useBoundStore } from "@/store/slices"
 const useScrollToBottomEffect = (items: any[] | undefined) => {
   const scrollAreaRef = useRef<HTMLDivElement | null>(null)
   const isScrollbarAtBottom = useRef(true)
-  const channelId = useBoundStore((state) => state.activeChannel)
 
   useEffect(() => {
     const container = scrollAreaRef.current
@@ -25,7 +24,7 @@ const useScrollToBottomEffect = (items: any[] | undefined) => {
     return () => {
       container.removeEventListener("scroll", handleScroll)
     }
-  }, [channelId])
+  }, [])
 
   useEffect(() => {
     const container = scrollAreaRef.current
@@ -33,7 +32,7 @@ const useScrollToBottomEffect = (items: any[] | undefined) => {
 
     container.scrollTo({
       top: container.scrollHeight,
-      behavior: "instant", // Use smooth scrolling
+      behavior: "instant",
     })
   }, [items])
 

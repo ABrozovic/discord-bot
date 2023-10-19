@@ -1,6 +1,5 @@
 import React from "react"
 import { useBoundStore } from "@/store/slices"
-import { useQueryClient } from "@tanstack/react-query"
 
 import { WebSocketManager } from "@/lib/ws-manager"
 
@@ -12,9 +11,8 @@ export type WsJsonMessage = {
 }
 
 export const useWebSocketSubscription = () => {
-  const queryClient = useQueryClient()
   const setWebsocket = useBoundStore((state) => state.setWebsocket)
-  const addToMessageQueue = useBoundStore((state) => state.setMessageQueue)
+
   //TODO: user proper envs
   React.useEffect(() => {
     const wsman = new WebSocketManager(

@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
-import { useParams } from "next/navigation"
+import { useMemo } from "react"
 import { useBoundStore } from "@/store/slices"
 import { useQueryClient } from "@tanstack/react-query"
 import {
@@ -12,25 +11,25 @@ import {
 } from "discord-api-types/v10"
 import { ChevronDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
-import { createWsMessage } from "@/lib/ws-messages"
 import { useQueryWrapper } from "@/hooks/use-query-wrapper"
 
 import Icons from "../icons"
 import { Typography } from "../typography"
 import { ScrollArea } from "../ui/scroll-area"
+import { ServerChannel } from "./server-channel"
 
 const ServerInfo = () => {
-  const { serverId } = useParams()
+  const queryClient = useQueryClient()
+  const activeGuild = useBoundStore((state) => state.zactiveGuild)
   const guilds =
     useQueryWrapper<Record<string, APIGuild & { channels: APIChannel[] }>>(
       "getGuilds"
     )
 
   const channelCategories = useMemo(() => {
-    if (!guilds || !guilds.data || !guilds.data[serverId as string]) return []
+    if (!guilds || !guilds.data || !guilds.data[activeGuild]) return []
 
-    const guild = guilds.data[serverId as string]
+    const guild = guilds.data[activeGuild as string]
     const channelsByParentId: Record<string, APIChannel[]> = {}
     const categories: (APIGuildCategoryChannel & { channels: APIChannel[] })[] =
       []
@@ -75,10 +74,14 @@ const ServerInfo = () => {
     }
 
     return categories
-  }, [guilds, serverId])
+  }, [guilds, activeGuild])
 
-  const guild = guilds.data && guilds.data[serverId as string]
+  const guild = guilds.data && guilds.data[activeGuild as string]
 
+  const resetQuery = (channelId: string) => {
+    console.log("ran")
+    queryClient.invalidateQueries({ queryKey: ["channel", channelId] })
+  }
   return (
     <div className="relative flex h-full w-60 flex-col bg-secondary">
       <ServerHeader label={guild?.name ?? ""} />
@@ -89,6 +92,7 @@ const ServerInfo = () => {
               {channelCategories?.map((category) => {
                 const channels = category.channels.map((channel) => (
                   <ServerChannel
+                    onClick={() => resetQuery(channel.id)}
                     key={channel.id}
                     id={channel.id}
                     label={channel.name ?? ""}
@@ -110,54 +114,6 @@ const ServerInfo = () => {
       <ServerHeader label={guild?.name ?? ""} />
     </div>
   )
-}
-
-//
-/*return (
-    <div className="flex h-full max-h-screen flex-col bg-secondary">
-      <ServerHeader label={guild?.name ?? ""} />
-
-      <div className="flex flex-1 overflow-hidden">
-        <nav className="w-60 bg-secondary">
-          <ScrollArea className="flex  flex-col items-stretch justify-end">
-            {/* {channelCategories?.map((category) => {
-              const channels = category.channels.map((channel) => (
-                <ServerChannel key={channel.id} label={channel.name ?? ""} />
-              ))
-              return (
-                <ServerChannelHeader
-                  key={category.id}
-                  label={category.name ?? ""}
-                >
-                  {channels}
-                </ServerChannelHeader>
-              )
-              
-            })} 
-            {[...Array(100).keys()].map(i=><p key={i}>isdfsf</p>)}
-          </ScrollArea>
-        </nav>
-
-        <div className="flex-1 bg-pink-300">{/* Additional content }</div>
-      </div>
-
-      <ServerHeader label={guild?.name ?? ""} />
-    </div>
-  )*/
-{
-  /* <button
-          onClick={() =>
-            websocket?.send(
-              createWsMessage({
-                action: "subscribe_to_guild",
-                messageId: "982746719802511370",
-                message: "982746719802511370",
-              })
-            )
-          }
-        >
-          test
-        </button> */
 }
 
 export default ServerInfo
@@ -187,33 +143,6 @@ const ServerChannelHeader = ({
   )
 }
 
-const ServerChannel = ({ id, label }: { id: string; label: string }) => {
-  const websocket = useBoundStore((state) => state.websocket)
-  const activeChannel = useBoundStore((state) => state.activeChannel)
-  const { serverId } = useParams()
-  const setActiveChannel = useBoundStore((state) => state.setActiveChannel)
-  const handleChannelClick = (channelId: string) => {
-    setActiveChannel(channelId)
-  }
-
-  return (
-    <li className="ml-2 py-[1px]">
-      <div
-        className="relative flex cursor-pointer items-center"
-        onClick={() => handleChannelClick(id)}
-      >
-        <Icons.hash className="mr-2 h-4 w-4" />
-        <div
-          className={cn("truncate hover:text-pink-500", {
-            "text-red-500": activeChannel === id,
-          })}
-        >
-          {label}
-        </div>
-      </div>
-    </li>
-  )
-}
 const ServerHeader = ({ label }: { label: string }) => {
   return (
     <div className="relative flex h-12 w-full cursor-pointer items-center border-b-[1px] border-tertiary">
