@@ -75,6 +75,7 @@ export const useStreamingMessages = <T>(
   options?: UseQueryOptions<T, Error, T, readonly string[]>
 ) => {
   const { socket, isEnabled } = useWebSocketConnection()
+  const channelId = useBoundStore((state) => state.zactiveChannel)
   const queryClient = useQueryClient()
   const subscriptionRef = useRef(false)
 
@@ -94,14 +95,15 @@ export const useStreamingMessages = <T>(
     const handleNewMessages = UpdateMessages<T>(queryClient, guildId)
     handleRef.current = handleNewMessages
     socket?.subscribe(["messages"], handleNewMessages)
-  }, [guildId, query, queryClient, socket])
+  }, [guildId, query, queryClient, socket, channelId])
 
   useEffect(() => {
     return () => {
       console.log("dismounted")
       socket?.unsubscribe(["messages"], handleRef.current!)
+      queryClient.invalidateQueries({ queryKey: ["messages", guildId] })
     }
-  }, [socket])
+  }, [guildId, queryClient, socket])
   return query
 }
 function UpdateMessages<T>(
